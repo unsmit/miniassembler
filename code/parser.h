@@ -15,4 +15,5 @@ typedef struct{
 int parseLine(char *line, Instruction *instruction);
 bool validateInstruction(Instruction *instruction);
 
+
 #endif

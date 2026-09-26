@@ -61,6 +61,12 @@ int parseLine(char *line, Instruction *instruction){
 }
 
 bool validateInstruction(Instruction *instruction){
-    // for(int i = 0; i < instruction->tokens)
+    // check first token
+    for(int j = 0; j < NUM_INSTRUCTIONS; j++){
+        if(!strcmp(instruction->tokens[0], VALID_INSTRUCTIONS[j])){
+            return true;
+        }
+    }
+
     return false;
 }
