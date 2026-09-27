@@ -9,11 +9,13 @@
 
 typedef struct{
     char tokens[MAX_TOKENS][MAX_TOKEN_LENGTH];
+    int numTokens;
 
 } Instruction;
 
 int parseLine(char *line, Instruction *instruction);
 bool validateInstruction(Instruction *instruction);
-
+bool validateOps(Instruction *instruction);
+bool validImmediate(char *token, int bits);
 
 #endif
