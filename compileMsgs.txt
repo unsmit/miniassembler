@@ -1,0 +1,3 @@
+gcc -ggdb -Wall -std=c18 -c asm.c
+gcc -ggdb -Wall -std=c18 -c parser.c
+gcc -ggdb -Wall -std=c18 -o ../asm asm.o parser.o

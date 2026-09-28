@@ -30,7 +30,6 @@ const Opcode OPCODES[] = {
 	{"cbnz", 0x17},
 	{"cbneg", 0x19}};
 
-
 int main(int argc, char **argv)
 {
 	// TODO: Code to assemble FOOTv8 assembly input goes here
@@ -47,13 +46,20 @@ int main(int argc, char **argv)
 	}
 
 	FILE *outputFile;
-	outputFile = fopen("output.o", "w");
+	char outputName[256];
+
+	strcpy(outputName, argv[1]);
+
+	int length = strlen(outputName);
+	outputName[length - 1] = 'o';
+
+	outputFile = fopen(outputName, "w");
+	
 	if (outputFile == NULL)
 	{
 		printf("Could not create output file.");
 		return 1;
 	}
-
 
 	inputFile = fopen(argv[1], "r");
 	if (inputFile == NULL)
@@ -82,22 +88,17 @@ int main(int argc, char **argv)
 
 		if (!validateInstruction(&instruction))
 		{
-    		printf("Invalid instruction on line: %d\n", lineNum);
-    		fprintf(outputFile, "%08x %08x\n", offset, 0);
-    		offset += 4;
-    		continue;
+			printf("Invalid instruction on line: %d\n", lineNum);
+			fprintf(outputFile, "%08x %08x\n", offset, 0u);
+			offset += 4;
+			continue;
 		}
-		// parse line into instruction
 
-		// if blank/comment-only, skip it
+		unsigned int machineCode = encodeInstruction(&instruction);
 
-		// validate instruction
+		fprintf(outputFile, "%08x %08x\n", offset, machineCode);
 
-		// encode instruction
-
-		// write encoded instruction
-
-		// next iteration reuses instruction
+		offset += 4;
 	}
 
 	fclose(inputFile);
@@ -106,29 +107,128 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-unsigned int encodeInstruction(Instruction *instruction){
+unsigned int encodeInstruction(Instruction *instruction)
+{
 	unsigned int value = 0;
+	unsigned char opcode = getOpcode(instruction->tokens[0]);
+
+	value = ((unsigned int)opcode << 24);
+
+	if (!strcmp(instruction->tokens[0], "add") ||
+		!strcmp(instruction->tokens[0], "sub") ||
+		!strcmp(instruction->tokens[0], "mul") ||
+		!strcmp(instruction->tokens[0], "div"))
+	{
+
+		unsigned char rd = registerValue(instruction->tokens[1]);
+		unsigned char rn = registerValue(instruction->tokens[2]);
+		unsigned char rm = registerValue(instruction->tokens[3]);
+
+		value |= ((unsigned int)rd << 16);
+		value |= ((unsigned int)rn << 8);
+		value |= ((unsigned int)rm << 0);
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "addi") ||
+			 !strcmp(instruction->tokens[0], "subi") ||
+			 !strcmp(instruction->tokens[0], "muli") ||
+			 !strcmp(instruction->tokens[0], "divi"))
+	{
+		unsigned char rd = registerValue(instruction->tokens[1]);
+		unsigned char rn = registerValue(instruction->tokens[2]);
+		unsigned char imm = immediateValue(instruction->tokens[3]);
+
+		value |= ((unsigned int)rd << 16);
+		value |= ((unsigned int)rn << 8);
+		value |= ((unsigned int)imm << 0);
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "ld"))
+	{
+		unsigned char rd = registerValue(instruction->tokens[1]);
+		unsigned char rb = registerValue(instruction->tokens[2]);
+		unsigned char imm = immediateValue(instruction->tokens[3]);
+
+		value |= ((unsigned int)rd << 16);
+		value |= ((unsigned int)rb << 8);
+		value |= ((unsigned int)imm << 0);
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "nop"))
+	{
+		value = 0;
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "st"))
+	{
+		unsigned char rt = registerValue(instruction->tokens[1]);
+		unsigned char rb = registerValue(instruction->tokens[2]);
+		unsigned char imm = immediateValue(instruction->tokens[3]);
+
+		value |= ((unsigned int)rt << 16);
+		value |= ((unsigned int)rb << 8);
+		value |= ((unsigned int)imm << 0);
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "exit"))
+	{
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "mov"))
+	{
+		unsigned char rd = registerValue(instruction->tokens[1]);
+		unsigned int imm = immediateValue(instruction->tokens[2]);
+
+		value |= ((unsigned int)rd << 16);
+		value |= (imm & 0xFFFF);
+
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "b"))
+	{
+		int imm = immediateValue(instruction->tokens[1]);
+
+		value |= (imm & 0xFFFF);
+		return value;
+	}
+	else if (!strcmp(instruction->tokens[0], "cbz") ||
+			 !strcmp(instruction->tokens[0], "cbnz") ||
+			 !strcmp(instruction->tokens[0], "cbneg"))
+	{
+		unsigned char rt = registerValue(instruction->tokens[1]);
+		unsigned int imm = immediateValue(instruction->tokens[2]);
+
+		value |= ((unsigned int) rt << 16);
+		value |= (imm & 0xFFFF);
+
+		return value;
+	}
 
 	return value;
 }
 
-unsigned char registerValue(char *token){
+unsigned char registerValue(char *token)
+{
 	int value;
-	sscanf(token+1, "%d", &value);
+	sscanf(token + 1, "%d", &value);
 
-	return (unsigned char) value;
+	return (unsigned char)value;
 }
 
-int immediateValue(char *token){
+int immediateValue(char *token)
+{
 	int value;
-	sscanf(token+1, "%i", &value);
+	sscanf(token + 1, "%i", &value);
 
 	return value;
 }
 
-unsigned char getOpcode(char *name){
-	for(int i = 0; i < NUM_OPCODES; i++){
-		if(!strcmp(OPCODES[i].name, name)){
+unsigned char getOpcode(char *name)
+{
+	for (int i = 0; i < NUM_OPCODES; i++)
+	{
+		if (!strcmp(OPCODES[i].name, name))
+		{
 			return OPCODES[i].opcode;
 		}
 	}
