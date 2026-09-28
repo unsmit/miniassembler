@@ -177,7 +177,7 @@ int parseLine(char *line, Instruction *instruction)
         if (line[lineIndex] == ',')
         {
 
-            if (tokenIndex == 1)
+            if (tokenIndex <= 1)
             {
                 return 0;
             }
