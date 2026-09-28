@@ -1,4 +1,3 @@
-# Makefile for CS320 Project 1 - FOOTv8 Assembler
 
 CDIR = ./code  # Allows multiple versions of code in different subdirectories
 

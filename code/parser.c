@@ -176,6 +176,12 @@ int parseLine(char *line, Instruction *instruction)
 
         if (line[lineIndex] == ',')
         {
+
+            if (tokenIndex == 1)
+            {
+                return 0;
+            }
+            
             lineIndex++;
 
             while (line[lineIndex] == ' ' || line[lineIndex] == '\t')
