@@ -32,6 +32,7 @@ const Opcode OPCODES[] = {
 
 int main(int argc, char **argv)
 {
+	// TODO: Code to assemble FOOTv8 assembly input goes here
 	Instruction instruction;
 	char line[256];
 	FILE *inputFile;

@@ -176,12 +176,11 @@ int parseLine(char *line, Instruction *instruction)
 
         if (line[lineIndex] == ',')
         {
-
-            if (tokenIndex <= 1)
+            if (tokenIndex == 1)
             {
                 return 0;
             }
-            
+
             lineIndex++;
 
             while (line[lineIndex] == ' ' || line[lineIndex] == '\t')
@@ -201,7 +200,10 @@ int parseLine(char *line, Instruction *instruction)
 
         if (line[lineIndex] == '[')
         {
-            if (!allowBrackets || sawOpenBracket || sawCloseBracket)
+            if (!allowBrackets ||
+                sawOpenBracket ||
+                sawCloseBracket ||
+                tokenIndex != 2)
             {
                 return 0;
             }
@@ -211,7 +213,10 @@ int parseLine(char *line, Instruction *instruction)
         }
         else if (line[lineIndex] == ']')
         {
-            if (!allowBrackets || !sawOpenBracket || sawCloseBracket)
+            if (!allowBrackets ||
+                !sawOpenBracket ||
+                sawCloseBracket ||
+                tokenIndex != 4)
             {
                 return 0;
             }
@@ -221,9 +226,19 @@ int parseLine(char *line, Instruction *instruction)
         }
     }
 
-    if (sawOpenBracket != sawCloseBracket)
+    if (allowBrackets)
     {
-        return 0;
+        if (!sawOpenBracket || !sawCloseBracket)
+        {
+            return 0;
+        }
+    }
+    else
+    {
+        if (sawOpenBracket || sawCloseBracket)
+        {
+            return 0;
+        }
     }
 
     instruction->numTokens = tokenIndex;
